@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+*.pyc
+.venv/
+venv/
+env/
+output/
+.env
+.vscode/
+.idea/
+*.sqlite3
+*.log
+# Ignore generated data files
+*.csv
+*.json
