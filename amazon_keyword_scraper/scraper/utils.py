@@ -76,15 +76,20 @@ def safe_filename(value: str, max_length: int = 100) -> str:
     return value[:max_length]
 
 
+def save_json_data(data: Any, path: os.PathLike[str] | str) -> None:
+    """
+    Save JSON-serializable data as pretty-printed JSON.
+    """
+    ensure_output_dir()
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
 def save_json(records: List[Mapping[str, Any]], path: os.PathLike[str] | str) -> None:
     """
     Save list of dict-like records as pretty-printed JSON.
-    Uses pandas only for consistency with the CSV writer.
     """
-    ensure_output_dir()
-    # Use json directly to keep control over structure.
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(list(records), f, ensure_ascii=False, indent=2)
+    save_json_data(list(records), path)
 
 
 def save_csv(

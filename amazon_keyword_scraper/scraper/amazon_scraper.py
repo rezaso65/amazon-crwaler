@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass, asdict
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
 from urllib.parse import quote_plus
 
 from playwright.sync_api import (
     Browser,
+    Error as PlaywrightError,
     Page,
     TimeoutError as PlaywrightTimeoutError,
     sync_playwright,
@@ -52,7 +55,16 @@ class AmazonScraper:
         self.debug = debug
 
     def _launch_browser(self, playwright) -> Browser:
-        return playwright.chromium.launch(headless=self.headless)
+        try:
+            return playwright.chromium.launch(headless=self.headless)
+        except PlaywrightError as exc:
+            executable_path = _system_browser_path()
+            if not executable_path:
+                raise
+            if self.debug:
+                warning = f"[WARN] Playwright Chromium unavailable. Falling back to: {executable_path}"
+                print(warning.encode("ascii", errors="ignore").decode("ascii"))
+            return playwright.chromium.launch(headless=self.headless, executable_path=executable_path)
 
 
     def scrape(self, keyword: str, max_results: int = 50) -> List[Dict[str, Any]]:
@@ -121,6 +133,11 @@ class AmazonScraper:
             # Continue even if the initial load was slow.
             pass
 
+        try:
+            page.wait_for_selector('div[data-component-type="s-search-result"]', timeout=self.timeout_ms)
+        except PlaywrightTimeoutError:
+            # Continue so debug mode can still show what happened on captcha/empty pages.
+            pass
 
     def _extract_page_results(
         self,
@@ -149,21 +166,6 @@ class AmazonScraper:
 
             title = self._extract_title(card)
             if not title:
-                continue
-
-            # Filter out clearly unrelated products (simple heuristics).
-            title_lower = title.lower()
-            if "mouse" not in title_lower:
-                continue
-            excluded_phrases = [
-                "mouse pad",
-                "mousepad",
-                "charging pad",
-                "keyboard and mouse",
-                "mouse and keyboard",
-            ]
-            if any(phrase in title_lower for phrase in excluded_phrases):
-                # Very simple conservative filter – skip obvious non-mouse or combos.
                 continue
 
             href = self._extract_url(card)
@@ -408,4 +410,19 @@ class AmazonScraper:
         except PlaywrightTimeoutError:
             return False
         return True
+
+
+def _system_browser_path() -> Optional[str]:
+    configured = os.getenv("BROWSER_EXECUTABLE_PATH")
+    candidates = [
+        configured,
+        r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+        r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
+        r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
+        r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+    ]
+    for candidate in candidates:
+        if candidate and Path(candidate).exists():
+            return candidate
+    return None
 

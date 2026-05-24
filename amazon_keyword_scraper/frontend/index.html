@@ -1,0 +1,1045 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Amazon Crawler Console</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f5f7f9;
+      --surface: #ffffff;
+      --ink: #15202b;
+      --muted: #607083;
+      --line: #d8e0e8;
+      --accent: #0f766e;
+      --accent-2: #2563eb;
+      --danger: #b42318;
+      --warn: #9a5b00;
+      --soft: #eef8f6;
+      --soft-blue: #edf4ff;
+      --shadow: 0 10px 30px rgba(20, 34, 50, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+    }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--line);
+      padding: 18px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 5;
+    }
+
+    .topbar {
+      width: min(1320px, calc(100vw - 32px));
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    h1, h2, h3, p { margin: 0; }
+
+    h1 {
+      font-size: 21px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      font-size: 16px;
+      margin-bottom: 12px;
+    }
+
+    h3 {
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    main {
+      width: min(1320px, calc(100vw - 32px));
+      margin: 18px auto 28px;
+      display: grid;
+      grid-template-columns: 360px minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      padding: 16px;
+      min-width: 0;
+    }
+
+    .stack { display: grid; gap: 14px; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .field { display: grid; gap: 6px; }
+
+    label {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.3;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 10px 11px;
+      color: var(--ink);
+      background: #fff;
+      font: inherit;
+      min-height: 40px;
+    }
+
+    textarea {
+      min-height: 260px;
+      resize: vertical;
+      line-height: 1.45;
+      font-family: Consolas, Monaco, monospace;
+      font-size: 13px;
+    }
+
+    button {
+      border: 1px solid transparent;
+      border-radius: 6px;
+      min-height: 40px;
+      padding: 9px 12px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      background: var(--accent);
+      color: #fff;
+      white-space: nowrap;
+    }
+
+    button:hover { filter: brightness(0.96); }
+
+    button.secondary {
+      background: #fff;
+      color: var(--ink);
+      border-color: var(--line);
+    }
+
+    button.blue { background: var(--accent-2); }
+
+    button.danger {
+      background: #fff;
+      color: var(--danger);
+      border-color: #efb4ad;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .row input { flex: 1; }
+
+    .metric-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fff;
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 24px;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .keyword-list {
+      display: grid;
+      gap: 8px;
+      max-height: 440px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .keyword-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 8px;
+      background: #fff;
+    }
+
+    .keyword-name {
+      overflow-wrap: anywhere;
+      font-size: 14px;
+    }
+
+    .command-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .command {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+      border: 1px solid #c9ded9;
+      background: var(--soft);
+      border-radius: 8px;
+      padding: 10px;
+    }
+
+    code {
+      font-family: Consolas, Monaco, monospace;
+      font-size: 13px;
+      overflow-wrap: anywhere;
+    }
+
+    .phase-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .phase {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fff;
+      display: grid;
+      gap: 5px;
+    }
+
+    .phase[data-active="true"] {
+      border-color: #8bd2c7;
+      background: var(--soft);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      min-height: 24px;
+      border-radius: 999px;
+      background: var(--soft-blue);
+      color: #164f9c;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 9px;
+    }
+
+    .notice {
+      border: 1px solid #f0d49a;
+      background: #fff8e8;
+      color: var(--warn);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .job-status {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 8px;
+      padding: 12px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .progress {
+      width: 100%;
+      height: 12px;
+      overflow: hidden;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: #eef2f6;
+    }
+
+    .progress-bar {
+      width: 0%;
+      height: 100%;
+      background: var(--accent);
+      transition: width 220ms ease;
+    }
+
+    .job-details {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .job-detail {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 8px;
+      background: #fbfcfd;
+      min-width: 0;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      min-height: 26px;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      background: #edf4ff;
+      color: #164f9c;
+    }
+
+    .status-pill[data-status="running"], .status-pill[data-status="queued"] {
+      background: #fff8e8;
+      color: var(--warn);
+    }
+
+    .status-pill[data-status="succeeded"] {
+      background: #eaf8f0;
+      color: #166534;
+    }
+
+    .status-pill[data-status="failed"] {
+      background: #fff3f1;
+      color: var(--danger);
+    }
+
+    .log-box {
+      min-height: 130px;
+      max-height: 280px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fbfcfd;
+      padding: 10px;
+      font-family: Consolas, Monaco, monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .tab {
+      background: #fff;
+      color: var(--ink);
+      border-color: var(--line);
+    }
+
+    .tab[aria-selected="true"] {
+      background: var(--accent);
+      color: #fff;
+      border-color: transparent;
+    }
+
+    .view[hidden] { display: none; }
+
+    @media (max-width: 980px) {
+      .topbar { align-items: flex-start; flex-direction: column; }
+      main { grid-template-columns: 1fr; }
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 640px) {
+      header { padding: 14px 16px; }
+      main { width: calc(100vw - 20px); margin-top: 10px; }
+      .row, .command { grid-template-columns: 1fr; flex-direction: column; align-items: stretch; }
+      .metric-row { grid-template-columns: 1fr; }
+      button { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="topbar">
+      <div>
+        <h1>Amazon Crawler Console</h1>
+        <p class="muted">Single-page control surface for product offers, keyword research, and AI export commands.</p>
+      </div>
+      <div class="toolbar">
+        <button class="secondary" id="downloadConfigBtn">Download Config</button>
+        <button class="secondary" id="copyConfigBtn">Copy Config</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <aside class="stack">
+      <section class="panel stack">
+        <div>
+          <h2>Run Settings</h2>
+          <p class="muted">These values are stored locally in this browser and used to generate commands.</p>
+        </div>
+
+        <div class="field">
+          <label for="productUrl">Amazon product URL</label>
+          <input id="productUrl" type="url" placeholder="https://www.amazon.com/dp/B012345678">
+        </div>
+
+        <div class="field">
+          <label for="databaseUrl">PostgreSQL DATABASE_URL</label>
+          <input id="databaseUrl" type="text" placeholder="postgresql://user:pass@localhost:5432/amazon_crawler">
+        </div>
+
+        <div class="field">
+          <label for="alexaTemplate">Alexa/search URL template</label>
+          <input id="alexaTemplate" type="text" value="https://www.alexa.com/search?q={query}">
+        </div>
+
+        <div class="toolbar">
+          <button id="saveSettingsBtn">Save Settings</button>
+          <button class="secondary" id="resetSettingsBtn">Reset</button>
+        </div>
+      </section>
+
+      <section class="panel stack">
+        <div>
+          <h2>Start Jobs</h2>
+          <p class="muted">These buttons call the local FastAPI backend.</p>
+        </div>
+        <button id="startProductBtn">Start Amazon Product Scrape</button>
+        <button class="blue" id="startAlexaBtn">Start Alexa Keyword Research</button>
+        <button class="secondary" id="startExportBtn">Build AI Export</button>
+      </section>
+
+      <section class="panel">
+        <h2>Workflow</h2>
+        <div class="phase-list">
+          <div class="phase" data-active="true">
+            <span class="badge">Phase 1</span>
+            <strong>Product seller offers</strong>
+            <p class="muted">Scrape all seller offers for one product URL.</p>
+          </div>
+          <div class="phase" data-active="true">
+            <span class="badge">Phase 2</span>
+            <strong>PostgreSQL and media</strong>
+            <p class="muted">Persist products, offers, sellers, and product image metadata.</p>
+          </div>
+          <div class="phase" data-active="true">
+            <span class="badge">Phase 3</span>
+            <strong>Keyword research</strong>
+            <p class="muted">Write separate Alexa-style keyword research outputs.</p>
+          </div>
+          <div class="phase" data-active="true">
+            <span class="badge">Phase 4</span>
+            <strong>AI export</strong>
+            <p class="muted">Build JSON and JSONL exports for LLM/RAG workflows.</p>
+          </div>
+        </div>
+      </section>
+    </aside>
+
+    <section class="panel stack">
+      <div class="metric-row">
+        <div class="metric">
+          <strong id="keywordCount">0</strong>
+          <span class="muted">keywords</span>
+        </div>
+        <div class="metric">
+          <strong id="duplicateCount">0</strong>
+          <span class="muted">duplicates removed</span>
+        </div>
+        <div class="metric">
+          <strong id="commandCount">4</strong>
+          <span class="muted">commands</span>
+        </div>
+      </div>
+
+      <div class="tabs" role="tablist" aria-label="Console views">
+        <button class="tab" id="tabKeywords" aria-selected="true" data-view="keywordsView">Keywords</button>
+        <button class="tab" id="tabCommands" aria-selected="false" data-view="commandsView">Commands</button>
+        <button class="tab" id="tabExport" aria-selected="false" data-view="exportView">Payload</button>
+      </div>
+
+      <div id="keywordsView" class="view stack">
+        <div class="row">
+          <input id="keywordInput" type="text" placeholder="Add keyword">
+          <button id="addKeywordBtn">Add</button>
+        </div>
+        <div class="toolbar">
+          <button class="secondary" id="sortKeywordsBtn">Sort</button>
+          <button class="secondary" id="resetKeywordsBtn">Reset Defaults</button>
+          <button class="danger" id="clearKeywordsBtn">Clear</button>
+        </div>
+        <div class="grid">
+          <div>
+            <h3>Current Keywords</h3>
+            <div class="keyword-list" id="keywordList"></div>
+          </div>
+          <div class="field">
+            <label for="bulkKeywords">Bulk editor, one keyword per line</label>
+            <textarea id="bulkKeywords" spellcheck="false"></textarea>
+            <div class="toolbar">
+              <button id="applyBulkBtn">Apply Bulk Text</button>
+              <button class="secondary" id="downloadKeywordsBtn">Download keywords.txt</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="commandsView" class="view stack" hidden>
+        <div class="notice">Use the Start Jobs buttons when the backend is running. These commands are kept as a manual fallback.</div>
+        <div class="command-list" id="commandList"></div>
+      </div>
+
+      <div id="exportView" class="view stack" hidden>
+        <div class="field">
+          <label for="configJson">Frontend configuration JSON</label>
+          <textarea id="configJson" spellcheck="false"></textarea>
+        </div>
+        <div class="toolbar">
+          <button id="applyConfigBtn">Apply JSON</button>
+          <button class="secondary" id="copyPayloadBtn">Copy JSON</button>
+          <button class="secondary" id="downloadPayloadBtn">Download JSON</button>
+        </div>
+      </div>
+
+      <div class="job-status">
+        <div class="row">
+          <div>
+            <h2>Job Status</h2>
+            <p class="muted" id="jobMeta">No job has been started yet.</p>
+          </div>
+          <span class="status-pill" id="jobStatus" data-status="idle">idle</span>
+        </div>
+        <div class="progress" aria-label="Job progress">
+          <div class="progress-bar" id="jobProgressBar"></div>
+        </div>
+        <div class="job-details">
+          <div class="job-detail">
+            <div class="muted">Progress</div>
+            <strong id="jobProgressText">0%</strong>
+          </div>
+          <div class="job-detail">
+            <div class="muted">Current step</div>
+            <strong id="jobCurrentStep">Idle</strong>
+          </div>
+          <div class="job-detail">
+            <div class="muted">Updated</div>
+            <strong id="jobUpdatedAt">-</strong>
+          </div>
+        </div>
+        <div class="toolbar">
+          <button class="secondary" id="refreshJobsBtn">Refresh Latest Job</button>
+          <button class="secondary" id="clearJobBtn">Clear Status</button>
+        </div>
+        <div class="log-box" id="jobLogs">Waiting for a backend job.</div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const DEFAULT_KEYWORDS = [
+      "wireless mouse",
+      "gaming mouse",
+      "ergonomic mouse",
+      "vertical mouse",
+      "wireless gaming mouse",
+      "bluetooth mouse",
+      "silent mouse",
+      "rechargeable mouse",
+      "usb c mouse",
+      "macbook mouse",
+      "windows laptop mouse",
+      "office mouse",
+      "travel mouse",
+      "compact wireless mouse",
+      "left handed mouse",
+      "right handed mouse",
+      "trackball mouse",
+      "mouse for designers",
+      "mouse for programmers",
+      "mouse for kids",
+      "budget wireless mouse",
+      "premium wireless mouse",
+      "silent click mouse",
+      "rgb gaming mouse",
+      "lightweight gaming mouse",
+      "wireless vertical mouse",
+      "bluetooth gaming mouse",
+      "mouse for mac",
+      "mouse for windows",
+      "mouse for laptop",
+      "mouse for desktop",
+      "mouse with side buttons",
+      "mouse with dpi switch",
+      "mouse for large hands",
+      "mouse for small hands",
+      "mouse for carpal tunnel",
+      "wireless office mouse",
+      "2.4g wireless mouse",
+      "bluetooth 5.0 mouse",
+      "logitech wireless mouse",
+      "logitech gaming mouse",
+      "logitech vertical mouse",
+      "anker wireless mouse",
+      "anker vertical mouse",
+      "razor gaming mouse",
+      "hp wireless mouse",
+      "dell wireless mouse",
+      "usb nano receiver mouse",
+      "silent ergonomic mouse"
+    ];
+
+    const storageKey = "amazon_crawler_frontend_config_v2";
+    const API_BASE = window.location.protocol === "file:" ? "http://127.0.0.1:8000" : "";
+    const defaultConfig = {
+      productUrl: "",
+      databaseUrl: "",
+      alexaTemplate: "https://www.alexa.com/search?q={query}",
+      keywords: DEFAULT_KEYWORDS
+    };
+
+    let duplicateCount = 0;
+    let config = loadConfig();
+    let activeJobId = null;
+
+    const els = {
+      productUrl: document.getElementById("productUrl"),
+      databaseUrl: document.getElementById("databaseUrl"),
+      alexaTemplate: document.getElementById("alexaTemplate"),
+      keywordInput: document.getElementById("keywordInput"),
+      keywordList: document.getElementById("keywordList"),
+      bulkKeywords: document.getElementById("bulkKeywords"),
+      keywordCount: document.getElementById("keywordCount"),
+      duplicateCount: document.getElementById("duplicateCount"),
+      commandList: document.getElementById("commandList"),
+      configJson: document.getElementById("configJson")
+    };
+
+    bindEvents();
+    render();
+
+    function bindEvents() {
+      document.getElementById("saveSettingsBtn").addEventListener("click", saveSettingsFromFields);
+      document.getElementById("resetSettingsBtn").addEventListener("click", resetSettings);
+      document.getElementById("addKeywordBtn").addEventListener("click", addKeyword);
+      document.getElementById("sortKeywordsBtn").addEventListener("click", sortKeywords);
+      document.getElementById("resetKeywordsBtn").addEventListener("click", resetKeywords);
+      document.getElementById("clearKeywordsBtn").addEventListener("click", clearKeywords);
+      document.getElementById("applyBulkBtn").addEventListener("click", applyBulkKeywords);
+      document.getElementById("downloadKeywordsBtn").addEventListener("click", downloadKeywordsTxt);
+      document.getElementById("copyConfigBtn").addEventListener("click", copyConfig);
+      document.getElementById("downloadConfigBtn").addEventListener("click", downloadConfig);
+      document.getElementById("copyPayloadBtn").addEventListener("click", copyConfig);
+      document.getElementById("downloadPayloadBtn").addEventListener("click", downloadConfig);
+      document.getElementById("applyConfigBtn").addEventListener("click", applyConfigJson);
+      document.getElementById("startProductBtn").addEventListener("click", startProductJob);
+      document.getElementById("startAlexaBtn").addEventListener("click", startAlexaJob);
+      document.getElementById("startExportBtn").addEventListener("click", startExportJob);
+      document.getElementById("refreshJobsBtn").addEventListener("click", refreshLatestJob);
+      document.getElementById("clearJobBtn").addEventListener("click", clearJobStatus);
+      els.keywordInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") addKeyword();
+      });
+
+      document.querySelectorAll(".tab").forEach((tab) => {
+        tab.addEventListener("click", () => selectView(tab.dataset.view));
+      });
+    }
+
+    function loadConfig() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(storageKey));
+        return normalizeConfig({ ...defaultConfig, ...saved });
+      } catch (error) {
+        return normalizeConfig(defaultConfig);
+      }
+    }
+
+    function normalizeConfig(value) {
+      const normalized = { ...defaultConfig, ...value };
+      const result = normalizeKeywords(normalized.keywords || []);
+      duplicateCount = result.duplicates;
+      normalized.keywords = result.keywords;
+      return normalized;
+    }
+
+    function normalizeKeywords(values) {
+      const seen = new Set();
+      let duplicates = 0;
+      const keywords = values
+        .map((value) => String(value).trim())
+        .filter(Boolean)
+        .filter((value) => {
+          const key = value.toLowerCase();
+          if (seen.has(key)) {
+            duplicates += 1;
+            return false;
+          }
+          seen.add(key);
+          return true;
+        });
+      return { keywords, duplicates };
+    }
+
+    function persist() {
+      config = normalizeConfig(config);
+      localStorage.setItem(storageKey, JSON.stringify(config));
+      render();
+    }
+
+    function render() {
+      els.productUrl.value = config.productUrl;
+      els.databaseUrl.value = config.databaseUrl;
+      els.alexaTemplate.value = config.alexaTemplate;
+      els.keywordCount.textContent = config.keywords.length;
+      els.duplicateCount.textContent = duplicateCount;
+      els.bulkKeywords.value = config.keywords.join("\n");
+      els.configJson.value = JSON.stringify(exportPayload(), null, 2);
+      renderKeywords();
+      renderCommands();
+    }
+
+    function renderKeywords() {
+      els.keywordList.innerHTML = "";
+      config.keywords.forEach((keyword, index) => {
+        const item = document.createElement("div");
+        item.className = "keyword-item";
+
+        const name = document.createElement("div");
+        name.className = "keyword-name";
+        name.textContent = keyword;
+
+        const remove = document.createElement("button");
+        remove.className = "danger";
+        remove.type = "button";
+        remove.textContent = "Remove";
+        remove.addEventListener("click", () => {
+          config.keywords = config.keywords.filter((_, itemIndex) => itemIndex !== index);
+          persist();
+        });
+
+        item.append(name, remove);
+        els.keywordList.appendChild(item);
+      });
+    }
+
+    function renderCommands() {
+      const commands = buildCommands();
+      document.getElementById("commandCount").textContent = commands.length;
+      els.commandList.innerHTML = "";
+      commands.forEach((command) => {
+        const item = document.createElement("div");
+        item.className = "command";
+
+        const code = document.createElement("code");
+        code.textContent = command;
+
+        const copy = document.createElement("button");
+        copy.className = "secondary";
+        copy.type = "button";
+        copy.textContent = "Copy";
+        copy.addEventListener("click", () => navigator.clipboard.writeText(command));
+
+        item.append(code, copy);
+        els.commandList.appendChild(item);
+      });
+    }
+
+    function buildCommands() {
+      const productUrl = quoteArg(config.productUrl || "https://www.amazon.com/dp/B012345678");
+      const databasePrefix = config.databaseUrl ? `$env:DATABASE_URL=${quoteArg(config.databaseUrl)}; ` : "";
+      const alexaPrefix = config.alexaTemplate ? `$env:ALEXA_SEARCH_URL_TEMPLATE=${quoteArg(config.alexaTemplate)}; ` : "";
+      return [
+        `${databasePrefix}python main.py --product-url ${productUrl}`,
+        "python main.py --batch",
+        `${alexaPrefix}python main.py --alexa-keywords`,
+        "python main.py --ai-export"
+      ];
+    }
+
+    async function startProductJob() {
+      saveSettingsFromFields();
+      if (!config.productUrl) {
+        alert("Enter an Amazon product URL first.");
+        return;
+      }
+      const job = await postJob("/api/jobs/product-offers", {
+        product_url: config.productUrl,
+        database_url: config.databaseUrl || null,
+        persist_db: Boolean(config.databaseUrl),
+        headless: false,
+        debug: false,
+        max_offers: 100,
+        max_similar_products: 12
+      });
+      activeJobId = job.id;
+      pollJob(job.id);
+    }
+
+    async function startAlexaJob() {
+      saveSettingsFromFields();
+      if (!config.keywords.length) {
+        alert("Add at least one keyword first.");
+        return;
+      }
+      const job = await postJob("/api/jobs/alexa-keywords", {
+        keywords: config.keywords,
+        alexa_template: config.alexaTemplate,
+        live_alexa: false,
+        headless: false
+      });
+      activeJobId = job.id;
+      pollJob(job.id);
+    }
+
+    async function startExportJob() {
+      saveSettingsFromFields();
+      const job = await postJob("/api/jobs/ai-export", {
+        database_url: config.databaseUrl || null
+      });
+      activeJobId = job.id;
+      pollJob(job.id);
+    }
+
+    async function postJob(url, payload) {
+      setJobStatus({ status: "queued", logs: ["Sending request to backend..."] });
+      try {
+        const response = await fetch(apiUrl(url), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        if (!response.ok) {
+          const body = await response.text();
+          throw new Error(body || `HTTP ${response.status}`);
+        }
+        return await response.json();
+      } catch (error) {
+        setJobStatus({
+          status: "failed",
+          error: "Backend request failed. Start the server with: uvicorn backend.app:app --reload",
+          logs: [String(error)]
+        });
+        throw error;
+      }
+    }
+
+    async function pollJob(jobId) {
+      let active = true;
+      while (active) {
+        const response = await fetch(apiUrl(`/api/jobs/${jobId}`));
+        const job = await response.json();
+        setJobStatus(job);
+        active = job.status === "queued" || job.status === "running";
+        if (active) await sleep(1500);
+      }
+    }
+
+    async function refreshLatestJob() {
+      try {
+        if (activeJobId) {
+          const response = await fetch(apiUrl(`/api/jobs/${activeJobId}`));
+          setJobStatus(await response.json());
+          return;
+        }
+        const response = await fetch(apiUrl("/api/jobs"));
+        const data = await response.json();
+        if (data.jobs && data.jobs.length) {
+          activeJobId = data.jobs[0].id;
+          setJobStatus(data.jobs[0]);
+        }
+      } catch (error) {
+        setJobStatus({ status: "failed", error: "Could not refresh job status.", logs: [String(error)] });
+      }
+    }
+
+    function clearJobStatus() {
+      activeJobId = null;
+      setJobStatus({ status: "idle", progress_percent: 0, current_step: "Idle", logs: ["Waiting for a backend job."] });
+    }
+
+    function setJobStatus(job) {
+      const status = job.status || "idle";
+      const statusEl = document.getElementById("jobStatus");
+      const metaEl = document.getElementById("jobMeta");
+      const logsEl = document.getElementById("jobLogs");
+      const progress = Number(job.progress_percent || 0);
+      const currentStep = job.current_step || "Idle";
+      const updatedAt = job.updated_at ? formatTime(job.updated_at) : "-";
+
+      statusEl.textContent = status;
+      statusEl.dataset.status = status;
+      metaEl.textContent = job.id ? `${job.kind || "job"} - ${job.id}` : (job.error || "No job has been started yet.");
+      document.getElementById("jobProgressBar").style.width = `${Math.max(0, Math.min(100, progress))}%`;
+      document.getElementById("jobProgressText").textContent = `${Math.round(progress)}%`;
+      document.getElementById("jobCurrentStep").textContent = currentStep;
+      document.getElementById("jobUpdatedAt").textContent = updatedAt;
+
+      const lines = [];
+      if (job.error) lines.push(`ERROR: ${job.error}`);
+      if (Array.isArray(job.logs)) lines.push(...job.logs);
+      if (job.result) lines.push(`RESULT: ${JSON.stringify(job.result, null, 2)}`);
+      logsEl.textContent = lines.join("\n") || "Waiting for a backend job.";
+      logsEl.scrollTop = logsEl.scrollHeight;
+    }
+
+    function apiUrl(path) {
+      return `${API_BASE}${path}`;
+    }
+
+    function formatTime(value) {
+      try {
+        return new Date(value).toLocaleTimeString();
+      } catch (error) {
+        return value;
+      }
+    }
+
+    function sleep(ms) {
+      return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+
+    function quoteArg(value) {
+      return `"${String(value).replaceAll('"', '\\"')}"`;
+    }
+
+    function saveSettingsFromFields() {
+      config.productUrl = els.productUrl.value.trim();
+      config.databaseUrl = els.databaseUrl.value.trim();
+      config.alexaTemplate = els.alexaTemplate.value.trim() || defaultConfig.alexaTemplate;
+      persist();
+    }
+
+    function resetSettings() {
+      config.productUrl = "";
+      config.databaseUrl = "";
+      config.alexaTemplate = defaultConfig.alexaTemplate;
+      persist();
+    }
+
+    function addKeyword() {
+      const value = els.keywordInput.value.trim();
+      if (!value) return;
+      config.keywords = [...config.keywords, value];
+      els.keywordInput.value = "";
+      persist();
+      els.keywordInput.focus();
+    }
+
+    function sortKeywords() {
+      config.keywords = [...config.keywords].sort((a, b) => a.localeCompare(b));
+      persist();
+    }
+
+    function resetKeywords() {
+      config.keywords = [...DEFAULT_KEYWORDS];
+      persist();
+    }
+
+    function clearKeywords() {
+      config.keywords = [];
+      persist();
+    }
+
+    function applyBulkKeywords() {
+      config.keywords = els.bulkKeywords.value.split(/\r?\n/);
+      persist();
+    }
+
+    function applyConfigJson() {
+      try {
+        const nextConfig = JSON.parse(els.configJson.value);
+        config = normalizeConfig({
+          productUrl: nextConfig.product_url || nextConfig.productUrl || "",
+          databaseUrl: nextConfig.database_url || nextConfig.databaseUrl || "",
+          alexaTemplate: nextConfig.alexa_template || nextConfig.alexaTemplate || defaultConfig.alexaTemplate,
+          keywords: nextConfig.keywords || []
+        });
+        persist();
+      } catch (error) {
+        alert("Invalid JSON.");
+      }
+    }
+
+    function exportPayload() {
+      return {
+        schema_version: "1.0",
+        exported_at: new Date().toISOString(),
+        product_url: config.productUrl,
+        database_url: config.databaseUrl,
+        alexa_template: config.alexaTemplate,
+        keywords: config.keywords,
+        commands: buildCommands()
+      };
+    }
+
+    function downloadKeywordsTxt() {
+      downloadFile("keywords.txt", config.keywords.join("\n") + "\n", "text/plain");
+    }
+
+    function copyConfig() {
+      navigator.clipboard.writeText(JSON.stringify(exportPayload(), null, 2));
+    }
+
+    function downloadConfig() {
+      downloadFile("amazon_crawler_frontend_config.json", JSON.stringify(exportPayload(), null, 2), "application/json");
+    }
+
+    function downloadFile(filename, content, type) {
+      const blob = new Blob([content], { type });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function selectView(viewId) {
+      document.querySelectorAll(".tab").forEach((tab) => {
+        tab.setAttribute("aria-selected", String(tab.dataset.view === viewId));
+      });
+      document.querySelectorAll(".view").forEach((view) => {
+        view.hidden = view.id !== viewId;
+      });
+    }
+  </script>
+</body>
+</html>

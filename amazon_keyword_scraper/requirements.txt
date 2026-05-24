@@ -1,3 +1,7 @@
 playwright
 pandas
 python-dotenv
+psycopg[binary]
+requests
+fastapi
+uvicorn[standard]
